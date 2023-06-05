@@ -1,28 +1,36 @@
-- question: "What is the capital of France?"
+- question: "Жер бетінің табиғатың, халқы, оның шаруашылық әрекеті туралы ғылым"
   options:
-    - Paris
-    - London
-    - Rome
-    - Berlin
-  answer: Paris
-- question: "Who painted the Mona Lisa?"
+    - Геология
+    - Гидрология
+    - География
+    - Картография
+  answer: География
+- question: "Грек тілінен аударғанда «география» сөзінің мағынасы"
   options:
-    - Michelangelo
-    - Leonardo da Vinci
-    - Vincent van Gogh
-    - Pablo Picasso
-  answer: Leonardo da Vinci
-- question: "Which planet is known as the Red Planet?"
+    - Жерді өлшеу
+    - Жерді зерттеу
+    - Жерді оқу
+    - Жерді сипаттап жазу
+  answer: Жерді сипаттап жазу
+- question: "География ғылымы зерттейді"
   options:
-    - Venus
-    - Mars
-    - Jupiter
-    - Saturn
-  answer: Mars
-- question: "What is the tallest mountain in the world?"
+    - Өнеркәсіп пен ауыл шаруашылығын
+    - Жердің табиғатын, халқын, оның шаруашылығын
+    - Табиғат денелері мен құбылыстарды
+    - Жер бетінің жеке аймақтарын
+  answer: Жердің табиғатын, халқын, оның шаруашылығын
+- question: "«География» ұғымын енгізген"
   options:
-    - Mount Everest
-    - K2
-    - Kangchenjunga
-    - Mount Kilimanjaro
-  answer: Mount Everest
+    - Аристотель 
+    - Эратосфен
+    - Геродот
+    - Страбон
+  answer: Эратосфен
+- question: "«География» ұғымын енгізген"
+  options:
+    - Аристотель 
+    - Эратосфен
+    - Геродот
+    - Страбон
+  answer: Эратосфен
+
