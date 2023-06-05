@@ -3,16 +3,17 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 
 def load_questions(file_path):
-    with open(file_path, 'r') as file:
+    with open(file_path, 'r', encoding='utf-8') as file:
         questions = yaml.safe_load(file)
     return questions
+
 
 def menu(update, context):
     keyboard = [[InlineKeyboardButton("Start Quiz", callback_data='start_quiz')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     context.bot.send_message(chat_id=update.effective_chat.id,
-                             text="Welcome to the Quiz Bot!",
+                             text="Добро пожаловть в КуизБот! Здесь вы можете проверить свои знание, пройдя наши викторины.\nДля того чтобы начать викторину нажмите кнопку",
                              reply_markup=reply_markup)
     query = update.callback_query
     
