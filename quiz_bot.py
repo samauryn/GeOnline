@@ -75,6 +75,9 @@ def handle_answer(update, context):
 
     if selected_option == 'start_quiz':
         start_quiz(update, context)
+    elif selected_option == 'try_again':
+        login_start(update, context)
+        return LOGIN  # Go to the LOGIN state to ask for login input
     else:
         questions = context.user_data['questions']
         current_question = context.user_data['current_question']
@@ -110,10 +113,15 @@ def password_input(update, context):
 
     if context.user_data['login'] in authorized_users and authorized_users[context.user_data['login']] == password:
         menu(update, context)
+        return ConversationHandler.END  # End the conversation handler after successful login
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Unauthorized access. Please try again.")
+        # Unauthorized access, prompt user to try again
+        keyboard = [[InlineKeyboardButton("Try Again", callback_data='try_again')]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        context.bot.send_message(chat_id=update.effective_chat.id, text="Unauthorized access. Please try again.", reply_markup=reply_markup)
 
-    return ConversationHandler.END
+        return LOGIN  # Go back to the LOGIN state to ask for login input again
+
 
 def main():
     # Provide your Telegram API token here
