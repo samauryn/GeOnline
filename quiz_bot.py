@@ -58,7 +58,7 @@ def next_question(update, context):
         question = questions[current_question]['question']
         options = questions[current_question]['options']
         keyboard = [
-            [InlineKeyboardButton(option, callback_data=option) for option in options]
+            [InlineKeyboardButton(option, callback_data=option)] for option in options
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         context.bot.send_message(chat_id=update.effective_chat.id,
@@ -66,8 +66,23 @@ def next_question(update, context):
                                  reply_markup=reply_markup)
 
 def end_quiz(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id,
-                             text=f"Quiz ended. Your score: {context.user_data['score']}")
+    questions = context.user_data['questions']
+    score = context.user_data['score']
+    total_questions = len(questions)
+
+    results = []
+    for i in range(total_questions):
+        question = questions[i]['question']
+        answer = questions[i]['answer']
+        result = f"Question {i + 1}: {question}\nYour answer: {context.user_data.get(f'answer_{i}', '-')}\nCorrect answer: {answer}\n\n"
+        results.append(result)
+
+    result_text = ''.join(results)
+    score_text = f"Quiz ended. Your score: {score}/{total_questions}\n\n"
+    message_text = score_text + result_text
+
+    context.bot.send_message(chat_id=update.effective_chat.id, text=message_text)
+
 
 def handle_answer(update, context):
     query = update.callback_query
@@ -85,6 +100,8 @@ def handle_answer(update, context):
         if questions[current_question]['answer'] == selected_option:
             context.user_data['score'] += 1
 
+        context.user_data[f'answer_{current_question}'] = selected_option  # Store the user's answer
+
         context.user_data['current_question'] += 1
 
         if current_question + 1 < len(questions):
@@ -93,6 +110,7 @@ def handle_answer(update, context):
             end_quiz(update, context)
 
     query.answer()
+
 
 def login_start(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text="Please enter your login:")
