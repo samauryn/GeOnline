@@ -24,11 +24,11 @@ def save_authorized_users(file_path, authorized_users):
         json.dump(authorized_users, file)
 
 def menu(update, context):
-    keyboard = [[InlineKeyboardButton("Start Quiz", callback_data='start_quiz')]]
+    keyboard = [[InlineKeyboardButton("Куизді бастау", callback_data='start_quiz')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     context.bot.send_message(chat_id=update.effective_chat.id,
-                             text="Добро пожаловть в КуизБот! Здесь вы можете проверить свои знание, пройдя наши викторины.\nДля того чтобы начать викторину нажмите кнопку",
+                             text="Куизботқа қош келдіңіз! Мұнда сіз біздің викториналар арқылы біліміңізді тексере аласыз.Викторинаны бастау үшін түймені басыңыз",
                              reply_markup=reply_markup)
     query = update.callback_query
 
@@ -74,11 +74,11 @@ def end_quiz(update, context):
     for i in range(total_questions):
         question = questions[i]['question']
         answer = questions[i]['answer']
-        result = f"Question {i + 1}: {question}\nYour answer: {context.user_data.get(f'answer_{i}', '-')}\nCorrect answer: {answer}\n\n"
+        result = f"Сұрақ {i + 1}: {question}\nСіздің жаубыңыз: {context.user_data.get(f'answer_{i}', '-')}\nДұрыс жауап: {answer}\n\n"
         results.append(result)
 
     result_text = ''.join(results)
-    score_text = f"Quiz ended. Your score: {score}/{total_questions}\n\n"
+    score_text = f"Куиз аяқталды. Сіздің нәтижеңіз: {score}/{total_questions}\n\n"
     message_text = score_text + result_text
 
     context.bot.send_message(chat_id=update.effective_chat.id, text=message_text)
@@ -113,14 +113,14 @@ def handle_answer(update, context):
 
 
 def login_start(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Please enter your login:")
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Логініңізді теріңіз:")
     return LOGIN
 
 def login_input(update, context):
     user = update.message.from_user
     login = update.message.text
     context.user_data['login'] = login
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Please enter your password:")
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Парольіңізді теріңіз:")
     return PASSWORD
 
 def password_input(update, context):
@@ -134,9 +134,9 @@ def password_input(update, context):
         return ConversationHandler.END  # End the conversation handler after successful login
     else:
         # Unauthorized access, prompt user to try again
-        keyboard = [[InlineKeyboardButton("Try Again", callback_data='try_again')]]
+        keyboard = [[InlineKeyboardButton("Кері көру", callback_data='try_again')]]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Unauthorized access. Please try again.", reply_markup=reply_markup)
+        context.bot.send_message(chat_id=update.effective_chat.id, text="Логин табылмады. Қайталап көріңіз.", reply_markup=reply_markup)
 
         return LOGIN  # Go back to the LOGIN state to ask for login input again
 
