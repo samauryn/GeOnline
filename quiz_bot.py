@@ -24,7 +24,7 @@ def save_authorized_users(file_path, authorized_users):
         json.dump(authorized_users, file)
 
 def menu(update, context):
-    keyboard = [[InlineKeyboardButton("Start Quiz", callback_data='start_quiz')]]
+    keyboard = [[InlineKeyboardButton("Quiz-ды бастау", callback_data='start_quiz')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     context.bot.send_message(chat_id=update.effective_chat.id,
@@ -35,7 +35,7 @@ def menu(update, context):
     if query:
         query.message.delete()  # Delete the welcome menu message
 
-    questions = load_questions('quiz_questions.yaml')
+    questions = load_questions('GeOnline/quiz_questions.yaml')
     context.user_data['questions'] = questions
     context.user_data['score'] = 0
     context.user_data['current_question'] = 0
@@ -51,23 +51,44 @@ def start_quiz(update, context):
 def next_question(update, context):
     questions = context.user_data['questions']
     current_question = context.user_data['current_question']
+    total_questions = len(questions)
 
-    if current_question >= len(questions):
+    if current_question >= total_questions:
         end_quiz(update, context)
     else:
+        question_number = current_question + 1
         question = questions[current_question]['question']
+        MAX_OPTION_LENGTH = 30  # Maximum character length for each option
+
         options = questions[current_question]['options']
-        keyboard = [
-            [InlineKeyboardButton(option, callback_data=option) for option in options]
-        ]
+        keyboard = []
+        for option in options:
+            truncated_option = option[:MAX_OPTION_LENGTH] + "..." if len(option) > MAX_OPTION_LENGTH else option
+            keyboard.append([InlineKeyboardButton(truncated_option, callback_data=option)])
+
+        keyboard.append([InlineKeyboardButton("Quiz-ды аяқтау", callback_data='end_quiz')])
         reply_markup = InlineKeyboardMarkup(keyboard)
+
+        # Limit the characters per line to improve visibility on mobile devices
+        character_limit = 80
+        formatted_question = '\n'.join([question[i:i+character_limit] for i in range(0, len(question), character_limit)])
+        
+        formatted_options = '\n'.join([str(option) for option in options])
+
         context.bot.send_message(chat_id=update.effective_chat.id,
-                                 text=question,
+                                 text=f"Question {question_number}/{total_questions}:\n\n{formatted_question}",
                                  reply_markup=reply_markup)
 
+        
 def end_quiz(update, context):
+    score = context.user_data['score']
     context.bot.send_message(chat_id=update.effective_chat.id,
-                             text=f"Quiz ended. Your score: {context.user_data['score']}")
+                             text=f"Quiz аяқталды. Сіздің балыңыз: {score}")
+    
+def end_quiz_early(update, context):
+    query = update.callback_query
+    query.message.delete()  # Delete the question message
+    end_quiz(update, context)
 
 def handle_answer(update, context):
     query = update.callback_query
@@ -75,6 +96,8 @@ def handle_answer(update, context):
 
     if selected_option == 'start_quiz':
         start_quiz(update, context)
+    elif selected_option == 'end_quiz':
+        end_quiz_early(update, context)
     else:
         questions = context.user_data['questions']
         current_question = context.user_data['current_question']
@@ -106,7 +129,7 @@ def password_input(update, context):
     user = update.message.from_user
     password = update.message.text
 
-    authorized_users = load_authorized_users('authorized_users.json')
+    authorized_users = load_authorized_users('GeOnline/authorized_users.json')
 
     if context.user_data['login'] in authorized_users and authorized_users[context.user_data['login']] == password:
         menu(update, context)
@@ -117,7 +140,7 @@ def password_input(update, context):
 
 def main():
     # Provide your Telegram API token here
-    api_token = '6038848754:AAG2Ol7wTjRzf3BjatK9CI15ULlFBjYTTOA'
+    api_token = '6131696402:AAE7h0GgyJu3siOQCuH6V-nFg5f1THooslE'
 
     updater = Updater(api_token, use_context=True)
     dispatcher = updater.dispatcher
