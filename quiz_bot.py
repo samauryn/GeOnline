@@ -223,7 +223,7 @@ def password_input(update, context):
 def exit_system(update, context):
     query = update.callback_query
     query.message.delete()  # Удаляем сообщение с меню
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Сіз жүйеден шықтыңыз. Сау болыңыз!\nКері кірү  үшін /login командасын теріңіз")
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Сіз жүйеден шықтыңыз. Сау болыңыз!\nКері кіру үшін /login командасын теріңіз")
     sticker5 = open('bye.webp', 'rb')
     context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker5))
     sticker5.close()
