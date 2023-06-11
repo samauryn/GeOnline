@@ -29,9 +29,13 @@ def menu(update, context):
         [InlineKeyboardButton("Жүйеден шығу", callback_data='exit')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    # Send the sticker message and store the message object
     sticker1 = open('menu.webp', 'rb')
-    context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker1))
+    sticker_message = context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker1))
     sticker1.close()
+    
+    # Send the menu message
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text="Керемет!\nQuiz-ді бастау үшін түймені басыңыз",
                              reply_markup=reply_markup)
@@ -39,7 +43,8 @@ def menu(update, context):
     query = update.callback_query
     if query:
         query.message.delete()  # Delete the welcome menu message
-        query.sticker.delete()
+        context.bot.delete_message(chat_id=update.effective_chat.id, message_id=sticker_message.message_id)  # Delete the sticker message
+        
     questions = load_questions('quiz_questions.yaml')
     context.user_data['questions'] = questions
     context.user_data['score'] = 0
@@ -86,10 +91,13 @@ def next_question(update, context):
         # Добавляем кнопку "Остановить викторину"
         keyboard.append([InlineKeyboardButton("Quiz-ді тоқтату", callback_data='stop_quiz')])
         reply_markup = InlineKeyboardMarkup(keyboard)
-        context.bot.send_message(chat_id=update.effective_chat.id,
-                                 text=question,
-                                 reply_markup=reply_markup)
+        message = context.bot.send_message(chat_id=update.effective_chat.id,
+                                           text=question,
+                                           reply_markup=reply_markup)
+        # Save the message ID to access and delete it later
+        context.user_data['question_message_id'] = message.message_id
 
+        
 def stop_quiz(update, context):
     query = update.callback_query
     query.message.delete()  # Удаляем сообщение с вопросом
@@ -111,6 +119,7 @@ def stop_quiz(update, context):
     answered_questions = len(results)
     score_text = f"Қазіргі нәтиже: {score}/{answered_questions}\n\n"
     message_text = score_text + result_text
+
     sticker3 = open('yeah.webp', 'rb')
     context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker3))
     sticker3.close()
@@ -173,6 +182,10 @@ def handle_answer(update, context):
         context.user_data['current_question'] += 1
 
         if current_question + 1 < len(questions):
+            # Remove the previous question message
+            prev_message_id = context.user_data['question_message_id']
+            context.bot.delete_message(chat_id=update.effective_chat.id, message_id=prev_message_id)
+
             next_question(update, context)
         else:
             end_quiz(update, context)
