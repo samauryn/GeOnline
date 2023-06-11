@@ -25,7 +25,7 @@ def save_authorized_users(file_path, authorized_users):
 
 def menu(update, context):
     keyboard = [
-        [InlineKeyboardButton("Куизді бастау", callback_data='start_quiz')],
+        [InlineKeyboardButton("Quiz-ді бастау", callback_data='start_quiz')],
         [InlineKeyboardButton("Жүйеден шығу", callback_data='exit')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -125,7 +125,7 @@ def stop_quiz(update, context):
     context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker3))
     sticker3.close()
     keyboard = [
-    [InlineKeyboardButton("Куизді қайта бастау", callback_data='retry_quiz')],
+    [InlineKeyboardButton("Quiz-ді қайта бастау", callback_data='retry_quiz')],
     [InlineKeyboardButton("Жүйеден шығу", callback_data='exit')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -146,7 +146,7 @@ def end_quiz(update, context):
         results.append(result)
 
     result_text = ''.join(results)
-    score_text = f"Куиз аяқталды. Сіздің нәтижеңіз: {score}/{total_questions}\n\n"
+    score_text = f"Quiz аяқталды. Сіздің нәтижеңіз: {score}/{total_questions}\n\n"
     message_text = score_text + result_text
 
     sticker4 = open('yeah.webp', 'rb')
@@ -154,7 +154,7 @@ def end_quiz(update, context):
     sticker4.close()
 
     keyboard = [
-    [InlineKeyboardButton("Куизді қайта бастау", callback_data='retry_quiz')],
+    [InlineKeyboardButton("Quiz-ді қайта бастау", callback_data='retry_quiz')],
     [InlineKeyboardButton("Жүйеден шығу", callback_data='exit')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -207,14 +207,14 @@ def handle_answer(update, context):
     query.answer()
 
 def login_start(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Логініңізді теріңіз:")
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Логинді теріңіз:")
     return LOGIN
 
 def login_input(update, context):
     user = update.message.from_user
     login = update.message.text
     context.user_data['login'] = login
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Парольіңізді теріңіз:")
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Парольді теріңіз:")
     return PASSWORD
 
 def password_input(update, context):
