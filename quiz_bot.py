@@ -29,11 +29,11 @@ def menu(update, context):
         [InlineKeyboardButton("Жүйеден шығу", callback_data='exit')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    sticker = open('hello.webp', 'rb')
+    sticker = open('menu.webp', 'rb')
     context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker))
     sticker.close()
     context.bot.send_message(chat_id=update.effective_chat.id,
-                             text="Куизботқа қош келдіңіз! Мұнда сіз біздің викториналар арқылы біліміңізді тексере аласыз.Викторинаны бастау үшін түймені басыңыз",
+                             text="Керемет!\nQuiz-ді бастау үшін түймені басыңыз",
                              reply_markup=reply_markup)
 
     query = update.callback_query
@@ -44,6 +44,24 @@ def menu(update, context):
     context.user_data['questions'] = questions
     context.user_data['score'] = 0
     context.user_data['current_question'] = 0
+
+
+def hello_menu(update, context):
+    keyboard = [
+        [InlineKeyboardButton("Login енгізу", callback_data='login')]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    sticker = open('hello.webp', 'rb')
+    context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker))
+    sticker.close()
+    context.bot.send_message(chat_id=update.effective_chat.id,
+                             text="Сәлем!\nКуизботқа қош келдіңіз! Мұнда сіз біздің викториналар арқылы біліміңізді тексере аласыз.Quiz-ді бастау үшін ең алдымен логин енгізіңіз.",
+                             reply_markup=reply_markup)
+
+    query = update.callback_query
+    if query:
+        query.message.delete()  # Delete the welcome menu message
+        query.sticker.delete()
+
 
 def start_quiz(update, context):
     query = update.callback_query
@@ -93,7 +111,9 @@ def stop_quiz(update, context):
     answered_questions = len(results)
     score_text = f"Қазіргі нәтиже: {score}/{answered_questions}\n\n"
     message_text = score_text + result_text
-
+    sticker2 = open('yeah.webp', 'rb')
+    context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker2))
+    sticker2.close()
     context.bot.send_message(chat_id=update.effective_chat.id, text=message_text)
 
     return EXIT  # Завершаем обработку диалога
@@ -203,7 +223,7 @@ def main():
 
     # Add conversation handler for login
     login_handler = ConversationHandler(
-        entry_points=[CommandHandler('start', login_start)],
+        entry_points=[CommandHandler('start', hello_menu)],
         states={
             LOGIN: [MessageHandler(Filters.text, login_input)],
             PASSWORD: [MessageHandler(Filters.text, password_input)],
@@ -220,10 +240,20 @@ def main():
         },
         fallbacks=[],
     )
+    lg_handler = ConversationHandler(
+        entry_points=[CallbackQueryHandler(login_start, pattern='^login$')],
+        states={
+            LOGIN: [MessageHandler(Filters.text, login_input)],
+            PASSWORD: [MessageHandler(Filters.text, password_input)],
+            EXIT: [CallbackQueryHandler(end_quiz)]
+        },
+        fallbacks=[],
+    )
     exit_handler = CallbackQueryHandler(exit_system, pattern='^exit$')
     stop_handler = CallbackQueryHandler(stop_quiz, pattern='^stop_quiz$')
     dispatcher.add_handler(retry_handler)
     dispatcher.add_handler(stop_handler)
+    dispatcher.add_handler(lg_handler)
     dispatcher.add_handler(exit_handler)
     dispatcher.add_handler(login_handler)
     dispatcher.add_handler(CallbackQueryHandler(handle_answer))
