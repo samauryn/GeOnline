@@ -1,10 +1,10 @@
 import yaml
 import json
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputFile
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, ConversationHandler, MessageHandler, Filters
 
 # Define conversation states
-LOGIN, PASSWORD = range(2)
+LOGIN, PASSWORD, EXIT = range(3)
 
 def load_questions(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
@@ -24,17 +24,22 @@ def save_authorized_users(file_path, authorized_users):
         json.dump(authorized_users, file)
 
 def menu(update, context):
-    keyboard = [[InlineKeyboardButton("Куизді бастау", callback_data='start_quiz')]]
+    keyboard = [
+        [InlineKeyboardButton("Куизді бастау", callback_data='start_quiz')],
+        [InlineKeyboardButton("Жүйеден шығу", callback_data='exit')]
+    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-
+    sticker = open('hello.webp', 'rb')
+    context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker))
+    sticker.close()
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text="Куизботқа қош келдіңіз! Мұнда сіз біздің викториналар арқылы біліміңізді тексере аласыз.Викторинаны бастау үшін түймені басыңыз",
                              reply_markup=reply_markup)
-    query = update.callback_query
 
+    query = update.callback_query
     if query:
         query.message.delete()  # Delete the welcome menu message
-
+        query.sticker.delete()
     questions = load_questions('quiz_questions.yaml')
     context.user_data['questions'] = questions
     context.user_data['score'] = 0
@@ -60,10 +65,38 @@ def next_question(update, context):
         keyboard = [
             [InlineKeyboardButton(option, callback_data=option)] for option in options
         ]
+        # Добавляем кнопку "Остановить викторину"
+        keyboard.append([InlineKeyboardButton("Quiz-ді тоқтату", callback_data='stop_quiz')])
         reply_markup = InlineKeyboardMarkup(keyboard)
         context.bot.send_message(chat_id=update.effective_chat.id,
                                  text=question,
                                  reply_markup=reply_markup)
+
+def stop_quiz(update, context):
+    query = update.callback_query
+    query.message.delete()  # Удаляем сообщение с вопросом
+
+    questions = context.user_data['questions']
+    total_questions = len(questions)
+
+    results = []
+    for i in range(total_questions):
+        user_answer = context.user_data.get(f'answer_{i}')
+        if user_answer is not None:
+            question = questions[i]['question']
+            answer = questions[i]['answer']
+            result = f"Сұрақ {i + 1}: {question}\nСіздің жауабыңыз: {user_answer}\nДұрыс жауап: {answer}\n\n"
+            results.append(result)
+
+    result_text = ''.join(results)
+    score = context.user_data['score']
+    answered_questions = len(results)
+    score_text = f"Қазіргі нәтиже: {score}/{answered_questions}\n\n"
+    message_text = score_text + result_text
+
+    context.bot.send_message(chat_id=update.effective_chat.id, text=message_text)
+
+    return EXIT  # Завершаем обработку диалога
 
 def end_quiz(update, context):
     questions = context.user_data['questions']
@@ -81,8 +114,17 @@ def end_quiz(update, context):
     score_text = f"Куиз аяқталды. Сіздің нәтижеңіз: {score}/{total_questions}\n\n"
     message_text = score_text + result_text
 
+    sticker2 = open('yeah.webp', 'rb')
+    context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker2))
+    sticker2.close()
+
     context.bot.send_message(chat_id=update.effective_chat.id, text=message_text)
 
+    query = update.callback_query
+    if query:
+        query.message.delete()  # Delete the final quiz message
+
+    return EXIT  # Go to the EXIT state to end the conversation
 
 def handle_answer(update, context):
     query = update.callback_query
@@ -92,7 +134,13 @@ def handle_answer(update, context):
         start_quiz(update, context)
     elif selected_option == 'try_again':
         login_start(update, context)
-        return LOGIN  # Go to the LOGIN state to ask for login input
+        return LOGIN
+    elif selected_option == 'exit':
+        exit_system(update, context)
+        return ConversationHandler.END
+    elif selected_option == 'stop_quiz':
+        stop_quiz(update, context)
+        return ConversationHandler.END
     else:
         questions = context.user_data['questions']
         current_question = context.user_data['current_question']
@@ -110,7 +158,6 @@ def handle_answer(update, context):
             end_quiz(update, context)
 
     query.answer()
-
 
 def login_start(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text="Логініңізді теріңіз:")
@@ -140,6 +187,12 @@ def password_input(update, context):
 
         return LOGIN  # Go back to the LOGIN state to ask for login input again
 
+def exit_system(update, context):
+    query = update.callback_query
+    query.message.delete()  # Удаляем сообщение с меню
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Сіз жүйеден шықтыңыз. Сау болыңыз!\nКері кірү  үшін /login командасын теріңіз")
+    return ConversationHandler.END  # Завершаем обработку диалога
+
 
 def main():
     # Provide your Telegram API token here
@@ -154,14 +207,29 @@ def main():
         states={
             LOGIN: [MessageHandler(Filters.text, login_input)],
             PASSWORD: [MessageHandler(Filters.text, password_input)],
+            EXIT: [CallbackQueryHandler(end_quiz)]
         },
         fallbacks=[],
     )
-
+    retry_handler = ConversationHandler(
+        entry_points=[CommandHandler('login', login_start)],
+        states={
+            LOGIN: [MessageHandler(Filters.text, login_input)],
+            PASSWORD: [MessageHandler(Filters.text, password_input)],
+            EXIT: [CallbackQueryHandler(end_quiz)]
+        },
+        fallbacks=[],
+    )
+    exit_handler = CallbackQueryHandler(exit_system, pattern='^exit$')
+    stop_handler = CallbackQueryHandler(stop_quiz, pattern='^stop_quiz$')
+    dispatcher.add_handler(retry_handler)
+    dispatcher.add_handler(stop_handler)
+    dispatcher.add_handler(exit_handler)
     dispatcher.add_handler(login_handler)
     dispatcher.add_handler(CallbackQueryHandler(handle_answer))
     updater.start_polling()
     updater.idle()
+
 
 if __name__ == '__main__':
     main()
