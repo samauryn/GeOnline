@@ -44,7 +44,7 @@ def menu(update, context):
     if query:
         query.message.delete()  # Delete the welcome menu message
         context.bot.delete_message(chat_id=update.effective_chat.id, message_id=sticker_message.message_id)  # Delete the sticker message
-        
+ 
     questions = load_questions('quiz_questions.yaml')
     context.user_data['questions'] = questions
     context.user_data['score'] = 0
@@ -85,6 +85,7 @@ def next_question(update, context):
     else:
         question = questions[current_question]['question']
         options = questions[current_question]['options']
+        question_number = current_question + 1  # Нумерация вопросов начинается с 1
         keyboard = [
             [InlineKeyboardButton(option, callback_data=option)] for option in options
         ]
@@ -92,7 +93,7 @@ def next_question(update, context):
         keyboard.append([InlineKeyboardButton("Quiz-ді тоқтату", callback_data='stop_quiz')])
         reply_markup = InlineKeyboardMarkup(keyboard)
         message = context.bot.send_message(chat_id=update.effective_chat.id,
-                                           text=question,
+                                           text=f"Сұрақ {question_number}: {question}",
                                            reply_markup=reply_markup)
         # Save the message ID to access and delete it later
         context.user_data['question_message_id'] = message.message_id
@@ -113,7 +114,7 @@ def stop_quiz(update, context):
             answer = questions[i]['answer']
             result = f"Сұрақ {i + 1}: {question}\nСіздің жауабыңыз: {user_answer}\nДұрыс жауап: {answer}\n\n"
             results.append(result)
-
+    
     result_text = ''.join(results)
     score = context.user_data['score']
     answered_questions = len(results)
@@ -123,7 +124,12 @@ def stop_quiz(update, context):
     sticker3 = open('yeah.webp', 'rb')
     context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker3))
     sticker3.close()
-    context.bot.send_message(chat_id=update.effective_chat.id, text=message_text)
+    keyboard = [
+    [InlineKeyboardButton("Куизді қайта бастау", callback_data='retry_quiz')],
+    [InlineKeyboardButton("Жүйеден шығу", callback_data='exit')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    context.bot.send_message(chat_id=update.effective_chat.id, text=message_text, reply_markup=reply_markup)
 
     return EXIT  # Завершаем обработку диалога
 
@@ -136,7 +142,7 @@ def end_quiz(update, context):
     for i in range(total_questions):
         question = questions[i]['question']
         answer = questions[i]['answer']
-        result = f"Сұрақ {i + 1}: {question}\nСіздің жаубыңыз: {context.user_data.get(f'answer_{i}', '-')}\nДұрыс жауап: {answer}\n\n"
+        result = f"Сұрақ {i + 1}: {question}\nСіздің жауабыңыз: {context.user_data.get(f'answer_{i}', '-')}\nДұрыс жауап: {answer}\n\n"
         results.append(result)
 
     result_text = ''.join(results)
@@ -147,11 +153,19 @@ def end_quiz(update, context):
     context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker4))
     sticker4.close()
 
-    context.bot.send_message(chat_id=update.effective_chat.id, text=message_text)
+    keyboard = [
+    [InlineKeyboardButton("Куизді қайта бастау", callback_data='retry_quiz')],
+    [InlineKeyboardButton("Жүйеден шығу", callback_data='exit')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    context.bot.send_message(chat_id=update.effective_chat.id, text=message_text, reply_markup=reply_markup)
 
     query = update.callback_query
     if query:
         query.message.delete()  # Delete the final quiz message
+
+    if 'current_question' in context.user_data:
+        del context.user_data['current_question']
 
     return EXIT  # Go to the EXIT state to end the conversation
 
@@ -229,6 +243,9 @@ def exit_system(update, context):
     sticker5.close()
     return ConversationHandler.END  # Завершаем обработку диалога
 
+def retry_quiz(update, context):
+    menu(update, context)
+    return ConversationHandler.END
 
 def main():
     # Provide your Telegram API token here
@@ -265,8 +282,10 @@ def main():
         },
         fallbacks=[],
     )
+    qretry_handler = CallbackQueryHandler(retry_quiz, pattern='^retry_quiz$')
     exit_handler = CallbackQueryHandler(exit_system, pattern='^exit$')
     stop_handler = CallbackQueryHandler(stop_quiz, pattern='^stop_quiz$')
+    dispatcher.add_handler(qretry_handler)
     dispatcher.add_handler(retry_handler)
     dispatcher.add_handler(stop_handler)
     dispatcher.add_handler(lg_handler)
