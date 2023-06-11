@@ -29,9 +29,9 @@ def menu(update, context):
         [InlineKeyboardButton("Жүйеден шығу", callback_data='exit')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    sticker = open('menu.webp', 'rb')
-    context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker))
-    sticker.close()
+    sticker1 = open('menu.webp', 'rb')
+    context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker1))
+    sticker1.close()
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text="Керемет!\nQuiz-ді бастау үшін түймені басыңыз",
                              reply_markup=reply_markup)
@@ -50,9 +50,9 @@ def hello_menu(update, context):
     keyboard = [
         [InlineKeyboardButton("Login енгізу", callback_data='login')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    sticker = open('hello.webp', 'rb')
-    context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker))
-    sticker.close()
+    sticker2 = open('hello.webp', 'rb')
+    context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker2))
+    sticker2.close()
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text="Сәлем!\nКуизботқа қош келдіңіз! Мұнда сіз біздің викториналар арқылы біліміңізді тексере аласыз.Quiz-ді бастау үшін ең алдымен логин енгізіңіз.",
                              reply_markup=reply_markup)
@@ -111,9 +111,9 @@ def stop_quiz(update, context):
     answered_questions = len(results)
     score_text = f"Қазіргі нәтиже: {score}/{answered_questions}\n\n"
     message_text = score_text + result_text
-    sticker2 = open('yeah.webp', 'rb')
-    context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker2))
-    sticker2.close()
+    sticker3 = open('yeah.webp', 'rb')
+    context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker3))
+    sticker3.close()
     context.bot.send_message(chat_id=update.effective_chat.id, text=message_text)
 
     return EXIT  # Завершаем обработку диалога
@@ -134,9 +134,9 @@ def end_quiz(update, context):
     score_text = f"Куиз аяқталды. Сіздің нәтижеңіз: {score}/{total_questions}\n\n"
     message_text = score_text + result_text
 
-    sticker2 = open('yeah.webp', 'rb')
-    context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker2))
-    sticker2.close()
+    sticker4 = open('yeah.webp', 'rb')
+    context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker4))
+    sticker4.close()
 
     context.bot.send_message(chat_id=update.effective_chat.id, text=message_text)
 
@@ -211,6 +211,9 @@ def exit_system(update, context):
     query = update.callback_query
     query.message.delete()  # Удаляем сообщение с меню
     context.bot.send_message(chat_id=update.effective_chat.id, text="Сіз жүйеден шықтыңыз. Сау болыңыз!\nКері кірү  үшін /login командасын теріңіз")
+    sticker5 = open('bye.webp', 'rb')
+    context.bot.send_sticker(chat_id=update.effective_chat.id, sticker=InputFile(sticker5))
+    sticker5.close()
     return ConversationHandler.END  # Завершаем обработку диалога
 
 
