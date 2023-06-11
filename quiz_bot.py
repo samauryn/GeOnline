@@ -6,7 +6,7 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, Conversa
 
 # Define conversation states
 LOGIN, PASSWORD = range(2)
-
+# вв
 
 def load_questions(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
